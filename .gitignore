@@ -1,5 +1,5 @@
 .idea/*
 node_modules/*
-out/*
+dist/*
 .eslintrc
 *.git_ignore.js
