@@ -16,55 +16,79 @@
 
 var path = require('path');
 
+
+module.exports = function(grunt) {
+
+    // Project configuration.
+    grunt.initConfig({
+      pkg: grunt.file.readJSON('package.json'),
+      uglify: {
+        options: {
+          banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        },
+        build: {
+          src: 'src/factorial.js',
+          dest: 'build/factorial.min.js'
+        }
+      }
+    });
+  
+    // Load the plugin that provides the "uglify" task.
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+  
+    // Default task(s).
+    grunt.registerTask('default', ['uglify']);
+  };
+  
 module.exports = function(grunt) {
     //noinspection JSUnresolvedFunction
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        traceur: {
-            'translate-src': {
-                options: {
-                    experimental: true,
-                    copyRuntime: 'out/tmp/traceur/bootstrap_pre_src',
-                    moduleNaming: {
-                        stripPrefix: 'out/tmp/traceur'
-                    }
-                },
-                files: [{
-                    expand: true,
-                    cwd: 'src/',
-                    src: ['**/*.js'],
-                    dest: 'out/tmp/traceur/src/'
-                }]
-            },
-            'translate-test': {
-                options: {
-                    experimental: true,
-                    moduleNaming: {
-                        stripPrefix: 'out/tmp/traceur'
-                    }
-                },
-                files: [{
-                    expand: true,
-                    cwd: 'test/',
-                    src: ['**/*.js'],
-                    dest: 'out/tmp/traceur/test/'
-                }]
-            },
-            'translate-test-perf': {
-                options: {
-                    experimental: true,
-                    moduleNaming: {
-                        stripPrefix: 'out/tmp/traceur'
-                    }
-                },
-                files: [{
-                    expand: true,
-                    cwd: 'test_perf/',
-                    src: ['**/*.js'],
-                    dest: 'out/tmp/traceur/test_perf/'
-                }]
-            }
-        },
+        // traceur: {
+        //     'translate-src': {
+        //         options: {
+        //             experimental: true,
+        //             copyRuntime: 'out/tmp/traceur/bootstrap_pre_src',
+        //             moduleNaming: {
+        //                 stripPrefix: 'out/tmp/traceur'
+        //             }
+        //         },
+        //         files: [{
+        //             expand: true,
+        //             cwd: 'src/',
+        //             src: ['**/*.js'],
+        //             dest: 'out/tmp/traceur/src/'
+        //         }]
+        //     },
+        //     'translate-test': {
+        //         options: {
+        //             experimental: true,
+        //             moduleNaming: {
+        //                 stripPrefix: 'out/tmp/traceur'
+        //             }
+        //         },
+        //         files: [{
+        //             expand: true,
+        //             cwd: 'test/',
+        //             src: ['**/*.js'],
+        //             dest: 'out/tmp/traceur/test/'
+        //         }]
+        //     },
+        //     'translate-test-perf': {
+        //         options: {
+        //             experimental: true,
+        //             moduleNaming: {
+        //                 stripPrefix: 'out/tmp/traceur'
+        //             }
+        //         },
+        //         files: [{
+        //             expand: true,
+        //             cwd: 'test_perf/',
+        //             src: ['**/*.js'],
+        //             dest: 'out/tmp/traceur/test_perf/'
+        //         }]
+        //     }
+        // },
         karma: {
             unit: {
                 configFile: 'karma.test.conf.js'
@@ -87,40 +111,32 @@ module.exports = function(grunt) {
             }
         },
         concat: {
-            'concat-traceur-src': {
+            'concat-src': {
                 options: {
                     separator: ';'
                 },
                 src: [
-                    'out/tmp/traceur/bootstrap_pre_src/**/*.js',
-                    'out/tmp/traceur/src/**/*.js',
-                    'out/tmp/traceur/bootstrap_post_src/**/*.js'
+                    'src/**/*.js',
                 ],
                 dest: 'out/tmp/concatenated-src.js'
             },
-            'concat-traceur-test': {
+            'concat-test': {
                 options: {
                     separator: ';'
                 },
                 src: [
-                    'out/tmp/traceur/bootstrap_pre_src/**/*.js',
-                    'out/tmp/traceur/bootstrap_pre_test/**/*.js',
-                    'out/tmp/traceur/src/**/*.js',
-                    'out/tmp/traceur/test/**/*.js',
-                    'out/tmp/traceur/bootstrap_post_test/**/*.js'
+                    'src/**/*.js',
+                    'test/**/*.js',
                 ],
                 dest: 'out/test.js'
             },
-            'concat-traceur-test-perf': {
+            'concat-test-perf': {
                 options: {
                     separator: ';'
                 },
                 src: [
-                    'out/tmp/traceur/bootstrap_pre_src/**/*.js',
-                    'out/tmp/traceur/bootstrap_pre_test/**/*.js',
-                    'out/tmp/traceur/src/**/*.js',
-                    'out/tmp/traceur/test_perf/**/*.js',
-                    'out/tmp/traceur/bootstrap_post_test/**/*.js'
+                    'src/**/*.js',
+                    'test_perf/**/*.js',
                 ],
                 dest: 'out/test_perf.js'
             }
@@ -185,39 +201,28 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-karma');
-    grunt.loadNpmTasks('grunt-traceur');
 
     grunt.registerTask('build-src', [
         'clean:clean-tmp',
-        'traceur:translate-src',
-        'bootstrap-get-packages:src/main.js:out/tmp/traceur/bootstrap_post_src/run_main.js',
-        'concat:concat-traceur-src',
+        'concat:concat-src',
         'uglify:uglify-concatenated-src',
         'inject-js-into-html:html/quirk.template.html:out/tmp/minified-src.js:out/quirk.html',
         'clean:clean-tmp'
     ]);
     grunt.registerTask('build-debug', [
         'clean:clean-tmp',
-        'traceur:translate-src',
-        'bootstrap-get-packages:src/main.js:out/tmp/traceur/bootstrap_post_src/run_main.js',
-        'concat:concat-traceur-src',
+        'concat:concat-src',
         'inject-js-into-html:html/quirk.template.html:out/tmp/concatenated-src.js:out/quirk.html',
         'clean:clean-tmp'
     ]);
     grunt.registerTask('build-test', [
         'clean:clean-tmp',
-        'traceur:translate-src',
-        'traceur:translate-test',
-        'bootstrap-get-packages:test/**/*.test.js:out/tmp/traceur/bootstrap_post_test/run_tests.js',
-        'concat:concat-traceur-test',
+        'concat:concat-test',
         'clean:clean-tmp'
     ]);
     grunt.registerTask('build-test-perf', [
         'clean:clean-tmp',
-        'traceur:translate-src',
-        'traceur:translate-test-perf',
-        'bootstrap-get-packages:test_perf/**/*.perf.js:out/tmp/traceur/bootstrap_post_test/run_tests.js',
-        'concat:concat-traceur-test-perf',
+        'concat:concat-test-perf',
         'clean:clean-tmp'
     ]);
     grunt.registerTask('build-test-page', [
